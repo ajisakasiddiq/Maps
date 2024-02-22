@@ -29,6 +29,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 + "id INTEGER PRIMARY KEY AUTOINCREMENT, "
                 + "user_id INTEGER, "
                 + "tanggal TEXT, "
+                + "jam TEXT, "
                 + "lokasi TEXT);";
 
         db.execSQL(SQL_CREATE_USER_TABLE);
