@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item>
+        <shape
+            android:shape="rectangle">
+            <solid android:color="#ECECEC" /> <!-- Ganti dengan warna latar belakang yang Anda inginkan -->
+            <corners android:radius="8dp" /> <!-- Sesuaikan radius sesuai dengan preferensi Anda -->
+        </shape>
+    </item>
+</layer-list>
