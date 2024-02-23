@@ -4,6 +4,7 @@ package com.example.maps;
 import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
@@ -28,6 +29,17 @@ import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.maps.DirectionsApi;
+import com.google.maps.DirectionsApiRequest;
+import com.google.maps.GeoApiContext;
+import com.google.maps.internal.PolylineEncoding;
+import com.google.maps.model.DirectionsResult;
+import com.google.maps.model.DirectionsRoute;
+import com.google.maps.model.EncodedPolyline;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -189,31 +201,70 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             return latLngList;
         }
 
-        @Override
+        private List<LatLng> getDirectionsDetails(LatLng origin, LatLng destination) {
+            try {
+                // Menggunakan Google Maps Directions API untuk mendapatkan jalur
+                GeoApiContext context = new GeoApiContext.Builder()
+                        .apiKey("AIzaSyDXWk4C2wtezVlkhzB6-ZiZxXLmBaPQRqA")
+                        .build();
+
+                DirectionsApiRequest request = DirectionsApi.newRequest(context)
+                        .origin(new com.google.maps.model.LatLng(origin.latitude, origin.longitude))
+                        .destination(new com.google.maps.model.LatLng(destination.latitude, destination.longitude));
+
+                DirectionsResult results = request.await();
+
+                // Mendapatkan polyline dari hasil Directions API
+                DirectionsRoute route = results.routes[0];
+                EncodedPolyline encodedPolyline = route.overviewPolyline;
+                List<com.google.maps.model.LatLng> decodedPath = PolylineEncoding.decode(encodedPolyline.getEncodedPath());
+
+                // Menyimpan koordinat dalam format LatLng
+                List<LatLng> newDecodedPath = new ArrayList<>();
+                for (com.google.maps.model.LatLng latLng : decodedPath) {
+                    newDecodedPath.add(new LatLng(latLng.lat, latLng.lng));
+                }
+
+                return newDecodedPath;
+            } catch (Exception e) {
+                e.printStackTrace();
+                return null;
+            }
+        }
+
+        // Panggil metode ini dalam onPostExecute
         protected void onPostExecute(List<LatLng> latLngList) {
-            if (latLngList.size() == 2) {
-                // Menampilkan marker di peta dengan hasil konversi alamat ke koordinat
+            if (latLngList != null && latLngList.size() == 2) {
                 LatLng asalLatLng = latLngList.get(0);
                 LatLng tujuLatLng = latLngList.get(1);
 
                 googleMap.addMarker(new MarkerOptions().position(asalLatLng).title("Lokasi Asal"));
                 googleMap.addMarker(new MarkerOptions().position(tujuLatLng).title("Lokasi Tujuan"));
 
-                LatLngBounds.Builder builder = new LatLngBounds.Builder();
-                builder.include(asalLatLng);
-                builder.include(tujuLatLng);
-                LatLngBounds bounds = builder.build();
+                // Mendapatkan jalur antara dua titik
+                List<LatLng> polylinePath = getDirectionsDetails(asalLatLng, tujuLatLng);
+                if (polylinePath != null) {
+                    // Menampilkan jalur pada peta
+                    PolylineOptions polylineOptions = new PolylineOptions()
+                            .addAll(polylinePath)
+                            .width(5) // lebar polyline
+                            .color(Color.BLUE); // warna polyline
+                    googleMap.addPolyline(polylineOptions);
 
-                int padding = 100; // padding di piksel
-                CameraUpdate cu = CameraUpdateFactory.newLatLngBounds(bounds, padding);
-                googleMap.moveCamera(cu);
-                PolylineOptions rute = new PolylineOptions()
-                        .add(asalLatLng)
-                        .add(tujuLatLng);
-                googleMap.addPolyline(rute);
-            } else {
-                Toast.makeText(getBaseContext(), "Tidak dapat mengonversi alamat ke koordinat.", Toast.LENGTH_SHORT).show();
+                    // Mengatur batas peta
+                    LatLngBounds.Builder builder = new LatLngBounds.Builder();
+                    builder.include(asalLatLng);
+                    builder.include(tujuLatLng);
+                    LatLngBounds bounds = builder.build();
+
+                    int padding = 100; // padding di piksel
+                    CameraUpdate cu = CameraUpdateFactory.newLatLngBounds(bounds, padding);
+                    googleMap.moveCamera(cu);
+                } else {
+                    Toast.makeText(getBaseContext(), "Tidak dapat mengonversi alamat ke koordinat.", Toast.LENGTH_SHORT).show();
+                }
             }
         }
+
     }
 }

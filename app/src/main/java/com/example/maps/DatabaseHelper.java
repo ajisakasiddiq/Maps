@@ -24,16 +24,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 + "phone TEXT, "
                 + "email TEXT);";
 
-        // Skrip pembuatan tabel riwayat_presensi
-        String SQL_CREATE_PRESENSI_TABLE = "CREATE TABLE riwayat_presensi ("
-                + "id INTEGER PRIMARY KEY AUTOINCREMENT, "
-                + "user_id INTEGER, "
-                + "tanggal TEXT, "
-                + "jam TEXT, "
-                + "lokasi TEXT);";
 
         db.execSQL(SQL_CREATE_USER_TABLE);
-        db.execSQL(SQL_CREATE_PRESENSI_TABLE);
     }
 
     @Override
@@ -43,15 +35,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             db.execSQL("ALTER TABLE users ADD COLUMN address TEXT");
             db.execSQL("ALTER TABLE users ADD COLUMN phone TEXT");
             db.execSQL("ALTER TABLE users ADD COLUMN email TEXT");
-        }
-        if (oldVersion < 3) {
-            // Versi 3 menambahkan tabel riwayat_presensi
-            String SQL_CREATE_PRESENSI_TABLE = "CREATE TABLE riwayat_presensi ("
-                    + "id INTEGER PRIMARY KEY AUTOINCREMENT, "
-                    + "user_id INTEGER, "
-                    + "tanggal TEXT, "
-                    + "lokasi TEXT);";
-            db.execSQL(SQL_CREATE_PRESENSI_TABLE);
         }
     }
 }
